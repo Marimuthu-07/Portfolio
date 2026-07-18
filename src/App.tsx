@@ -11,8 +11,6 @@ import {
   ChevronUp,
   Download,
   ArrowRight,
-  Menu,
-  X,
   MapPin,
   Calendar,
   Sparkles,
@@ -20,13 +18,18 @@ import {
   Linkedin,
 } from 'lucide-react';
 
-import { PROJECTS, SKILL_CATEGORIES, CERTIFICATIONS, EDUCATIONS, PERSONAL_INFO } from './data';
+import { PROJECTS, CERTIFICATIONS, EDUCATIONS, PERSONAL_INFO } from './data';
 import ParticleBackground from './components/ParticleBackground';
 import ThemeToggle from './components/ThemeToggle';
-import SkillBar from './components/SkillBar';
-import ProjectCard from './components/ProjectCard';
-import CertificateCard from './components/CertificateCard';
-import ContactForm from './components/ContactForm';
+import ContactSection from './components/ContactSection';
+import RippleButton from './components/RippleButton';
+import HeroVisual from './components/HeroVisual';
+import Navbar from './components/Navbar';
+import AboutSection from './components/AboutSection';
+import SkillsSection from './components/SkillsSection';
+import ProjectsSection from './components/ProjectsSection';
+import ExperienceLearningSection from './components/ExperienceLearningSection';
+import Footer from './components/Footer';
 
 // Custom LeetCode SVG Icon matching official branding
 const LeetCodeIcon = ({ className = 'w-5 h-5' }: { className?: string }) => (
@@ -39,8 +42,8 @@ const LeetCodeIcon = ({ className = 'w-5 h-5' }: { className?: string }) => (
 function Typewriter() {
   const strings = [
     'Computer Science Engineering Student',
-    'Web Developer',
-    'AI Enthusiast',
+    'Aspiring Software Engineer',
+    'AI & Full-Stack Developer',
   ];
   const [text, setText] = useState('');
   const [index, setIndex] = useState(0);
@@ -117,8 +120,6 @@ function Counter({ target, label }: { target: number; label: string }) {
 
 export default function App() {
   const [theme, setTheme] = useState<'dark' | 'light'>('dark');
-  const [isScrolled, setIsScrolled] = useState(false);
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [activeSection, setActiveSection] = useState('home');
   const [backToTopVisible, setBackToTopVisible] = useState(false);
 
@@ -139,13 +140,10 @@ export default function App() {
 
   // Read initial theme preference from local storage
   useEffect(() => {
-    const savedTheme = localStorage.getItem('theme') as 'dark' | 'light';
-    if (savedTheme) {
-      setTheme(savedTheme);
-      document.body.setAttribute('data-theme', savedTheme);
-    } else {
-      document.body.setAttribute('data-theme', 'dark');
-    }
+    const savedTheme = (localStorage.getItem('theme') as 'dark' | 'light') || 'dark';
+    setTheme(savedTheme);
+    document.body.setAttribute('data-theme', savedTheme);
+    document.documentElement.classList.toggle('dark', savedTheme === 'dark');
   }, []);
 
   const handleThemeToggle = () => {
@@ -153,12 +151,12 @@ export default function App() {
     setTheme(nextTheme);
     localStorage.setItem('theme', nextTheme);
     document.body.setAttribute('data-theme', nextTheme);
+    document.documentElement.classList.toggle('dark', nextTheme === 'dark');
   };
 
   // Monitor scrolling to handle transparent header transitioning & back-to-top buttons
   useEffect(() => {
     const handleScroll = () => {
-      setIsScrolled(window.scrollY > 40);
       setBackToTopVisible(window.scrollY > 400);
 
       // Section Tracking to Highlight Navigation items dynamically
@@ -183,7 +181,6 @@ export default function App() {
   }, []);
 
   const handleScrollTo = (id: string) => {
-    setMobileMenuOpen(false);
     const el = document.getElementById(id);
     if (el) {
       const offset = 80;
@@ -205,124 +202,32 @@ export default function App() {
       <ParticleBackground theme={theme} />
 
       {/* STICKY GLASSMORPHIC HEADER */}
-      <header
-        className={`fixed top-0 left-0 w-full z-50 transition-all duration-300 ${
-          isScrolled
-            ? 'py-3.5 bg-[#FCFCFD]/90 dark:bg-[#0D0D0D]/90 border-b border-neutral-200 dark:border-white/10 backdrop-blur-md'
-            : 'py-6 bg-transparent border-b border-transparent'
-        }`}
-      >
-        <div className="max-w-6xl mx-auto px-6 flex items-center justify-between">
-          <a
-            href="#home"
-            onClick={(e) => {
-              e.preventDefault();
-              handleScrollTo('home');
-            }}
-            className="font-display text-xs tracking-[0.25em] font-black uppercase group"
-          >
-            <span className="text-neutral-400 dark:text-white/40 group-hover:text-black group-hover:dark:text-white transition-colors duration-300">
-              M.
-            </span>
-            PORTFOLIO
-          </a>
+      <Navbar
+        theme={theme}
+        onThemeToggle={handleThemeToggle}
+        activeSection={activeSection}
+        onScrollTo={handleScrollTo}
+      />
 
-          {/* Desktop Navigation links */}
-          <nav className="hidden md:flex items-center gap-7">
-            {['Home', 'About', 'Skills', 'Projects', 'Education', 'Certifications', 'Contact'].map((item) => {
-              const target = item.toLowerCase();
-              const isActive = activeSection === target;
-              return (
-                <a
-                  key={item}
-                  href={`#${target}`}
-                  onClick={(e) => {
-                    e.preventDefault();
-                    handleScrollTo(target);
-                  }}
-                  className={`relative text-[10px] font-bold uppercase tracking-[0.2em] transition-colors duration-300 ${
-                    isActive
-                      ? 'text-black dark:text-white'
-                      : 'text-neutral-400 hover:text-black dark:text-white/40 dark:hover:text-white'
-                  }`}
-                >
-                  {item}
-                  {isActive && (
-                    <motion.span
-                      layoutId="activeBar"
-                      className="absolute bottom-[-18px] left-0 right-0 h-[2px] bg-black dark:bg-white"
-                      transition={{ type: 'spring', stiffness: 380, damping: 30 }}
-                    />
-                  )}
-                </a>
-              );
-            })}
-          </nav>
-
-          {/* Control widgets (Theme switcher & Burger drawer toggle) */}
-          <div className="flex items-center gap-4">
-            <ThemeToggle theme={theme} onToggle={handleThemeToggle} />
-
-            <button
-              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="p-2 md:hidden rounded-xl border border-neutral-200 dark:border-white/10 bg-white dark:bg-[#1A1A1A] text-neutral-800 dark:text-[#E5E5E5] cursor-pointer"
-              aria-label="Toggle navigation menu"
-            >
-              {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
-            </button>
-          </div>
-        </div>
-      </header>
-
-      {/* MOBILE NAV OVERLAY */}
-      <AnimatePresence>
-        {mobileMenuOpen && (
-          <motion.div
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -10 }}
-            transition={{ duration: 0.3 }}
-            className="fixed inset-x-0 top-[70px] z-40 bg-white/95 dark:bg-[#0D0D0D]/95 border-b border-neutral-200 dark:border-white/10 backdrop-blur-xl md:hidden py-6 px-6"
-          >
-            <nav className="flex flex-col gap-4">
-              {['Home', 'About', 'Skills', 'Projects', 'Education', 'Certifications', 'Contact'].map((item) => {
-                const target = item.toLowerCase();
-                const isActive = activeSection === target;
-                return (
-                  <a
-                    key={item}
-                    href={`#${target}`}
-                    onClick={(e) => {
-                      e.preventDefault();
-                      handleScrollTo(target);
-                    }}
-                    className={`text-xs font-bold uppercase tracking-wider py-2 transition-colors duration-300 ${
-                      isActive ? 'text-black dark:text-white pl-2 border-l-2 border-black dark:border-white' : 'text-neutral-500 dark:text-white/40'
-                    }`}
-                  >
-                    {item}
-                  </a>
-                );
-              })}
-            </nav>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      <main className="relative z-10 max-w-5xl mx-auto px-6">
+      <main id="main-content" className="relative z-10 max-w-5xl mx-auto px-6">
         {/* HERO SECTION */}
         <section
           id="home"
-          className="min-h-screen flex flex-col justify-center items-center pt-28 pb-16 text-center"
+          className="min-h-screen flex flex-col lg:flex-row items-center justify-between gap-12 pt-32 pb-16 relative overflow-hidden"
         >
+          {/* Subtle decorative glow circles */}
+          <div className="absolute top-1/3 left-0 w-80 h-80 bg-indigo-500/10 dark:bg-indigo-500/5 rounded-full blur-3xl pointer-events-none" />
+          <div className="absolute bottom-1/3 right-0 w-80 h-80 bg-fuchsia-500/10 dark:bg-fuchsia-500/5 rounded-full blur-3xl pointer-events-none" />
+
+          {/* Left Column - Content */}
           <motion.div
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, ease: 'easeOut' }}
-            className="flex flex-col items-center"
+            className="flex-1 text-center lg:text-left flex flex-col items-center lg:items-start"
           >
             {/* Pulsating Available Badge & Status Tags Container with Curved Styling */}
-            <div id="home-status-badges" className="flex items-center justify-center mb-8 max-w-2xl mx-auto h-9">
+            <div id="home-status-badges" className="flex items-center justify-center lg:justify-start mb-6 h-9">
               <AnimatePresence mode="wait">
                 <motion.div
                   key={statusIndex}
@@ -343,429 +248,97 @@ export default function App() {
               </AnimatePresence>
             </div>
 
-            <h1 className="text-4xl sm:text-6xl font-display font-extrabold tracking-tight text-neutral-900 dark:text-neutral-50 mb-3 leading-[1.1]">
-              Hi, I am <span className="text-transparent bg-clip-text bg-gradient-to-r from-neutral-900 via-neutral-700 to-neutral-500 dark:from-white dark:via-neutral-200 dark:to-neutral-400 font-black">{PERSONAL_INFO.fullName}</span>
+            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-display font-extrabold tracking-tight text-neutral-900 dark:text-neutral-50 mb-4 leading-[1.15]">
+              Hi, I am <br className="hidden sm:inline lg:hidden" />
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 via-fuchsia-600 to-cyan-500 dark:from-cyan-400 dark:via-fuchsia-400 dark:to-indigo-400 font-black">
+                {PERSONAL_INFO.fullName}
+              </span>
             </h1>
 
-            <h2 className="text-xl sm:text-2xl font-display font-semibold text-neutral-600 dark:text-neutral-300 mb-6">
-              I'm a <Typewriter />
+            <h2 className="text-lg sm:text-xl lg:text-2xl font-display font-medium text-neutral-600 dark:text-neutral-300 mb-6">
+              I'm an <Typewriter />
             </h2>
 
-            <p className="text-sm sm:text-base text-neutral-500 dark:text-neutral-400 max-w-xl leading-relaxed mb-9 font-medium">
-              {PERSONAL_INFO.tagline}
+            <p className="text-sm sm:text-base text-neutral-500 dark:text-neutral-400 max-w-xl leading-relaxed mb-8 font-medium">
+              I build modern web applications, desktop software, and AI-powered solutions while continuously improving my software engineering skills. I enjoy solving real-world problems and creating clean, responsive, and user-friendly experiences.
             </p>
 
-            {/* CTA Buttons */}
-            <div className="flex flex-col sm:flex-row gap-3.5 mb-10 w-full sm:w-auto">
-              <button
+            {/* Premium CTA Buttons - exactly four buttons with rich hover transitions & keyboard support */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 w-full max-w-md lg:max-w-none">
+              <RippleButton
                 onClick={() => handleScrollTo('projects')}
-                className="inline-flex items-center justify-center gap-2 py-3 px-6 rounded-none bg-black dark:bg-white text-sm font-bold uppercase tracking-wider text-white dark:text-black cursor-pointer hover:bg-neutral-800 dark:hover:bg-white/95 shadow-[0_0_20px_rgba(255,255,255,0.05)] transition-all duration-300"
+                variant="primary"
+                ariaLabel="View Projects"
+                className="w-full text-center"
               >
-                <span>View My Work</span>
-                <ArrowRight className="w-4 h-4" />
-              </button>
-              <button
-                onClick={() => handleScrollTo('contact')}
-                className="inline-flex items-center justify-center gap-2 py-3 px-6 rounded-none bg-transparent border border-neutral-300 dark:border-white/10 text-sm font-bold uppercase tracking-wider text-neutral-800 dark:text-[#E5E5E5] cursor-pointer hover:border-neutral-500 dark:hover:border-white/25 transition-all duration-300"
-              >
-                <span>Contact Me</span>
-              </button>
-              <a
-                href="https://images.unsplash.com/photo-1586281380349-632531db7ed4?auto=format&fit=crop&q=80&w=1200" // Fallback standard downloadable asset structure
-                download="Marimuthu_ATS_Resume.pdf"
-                className="inline-flex items-center justify-center gap-2 py-3 px-6 rounded-none bg-transparent border border-neutral-300 dark:border-white/10 text-sm font-bold uppercase tracking-wider text-neutral-600 dark:text-white/60 hover:text-neutral-900 dark:hover:text-white hover:border-neutral-400 dark:hover:border-white/20 cursor-pointer transition-all duration-300"
-              >
-                <Download className="w-4 h-4" />
-                <span>Download Resume</span>
-              </a>
-            </div>
+                <span>View Projects</span>
+                <ArrowRight className="w-4 h-4 text-white dark:text-black" />
+              </RippleButton>
 
-            {/* Social media direct icons bar */}
-            <div className="flex gap-4">
-              <a
+              <RippleButton
+                href="https://images.unsplash.com/photo-1586281380349-632531db7ed4?auto=format&fit=crop&q=80&w=1200"
+                download="Marimuthu_ATS_Resume.pdf"
+                variant="outline"
+                ariaLabel="Download Resume"
+                className="w-full text-center"
+              >
+                <Download className="w-4 h-4 text-neutral-600 dark:text-neutral-300" />
+                <span>Download Resume</span>
+              </RippleButton>
+
+              <RippleButton
                 href={PERSONAL_INFO.github}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="w-11 h-11 rounded-xl border border-neutral-200 dark:border-white/10 bg-[#FCFCFD] dark:bg-[#1A1A1A] text-neutral-500 dark:text-white/60 hover:text-neutral-900 dark:hover:text-white hover:border-neutral-400 dark:hover:border-white/20 flex items-center justify-center transition-all duration-300 shadow-sm"
-                title="GitHub Profile"
+                variant="secondary"
+                ariaLabel="GitHub Profile"
+                className="w-full text-center"
               >
-                <Github className="w-5 h-5" />
-              </a>
-              <a
-                href={PERSONAL_INFO.linkedin}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="w-11 h-11 rounded-xl border border-neutral-200 dark:border-white/10 bg-[#FCFCFD] dark:bg-[#1A1A1A] text-neutral-500 dark:text-white/60 hover:text-neutral-900 dark:hover:text-white hover:border-neutral-400 dark:hover:border-white/20 flex items-center justify-center transition-all duration-300 shadow-sm"
-                title="LinkedIn Profile"
+                <Github className="w-4 h-4 text-neutral-700 dark:text-neutral-200" />
+                <span>GitHub</span>
+              </RippleButton>
+
+              <RippleButton
+                onClick={() => handleScrollTo('contact')}
+                variant="outline"
+                ariaLabel="Contact Me"
+                className="w-full text-center"
               >
-                <Linkedin className="w-5 h-5" />
-              </a>
-              <a
-                href={PERSONAL_INFO.leetcode}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="w-11 h-11 rounded-xl border border-neutral-200 dark:border-white/10 bg-[#FCFCFD] dark:bg-[#1A1A1A] text-neutral-500 dark:text-white/60 hover:text-neutral-900 dark:hover:text-white hover:border-neutral-400 dark:hover:border-white/20 flex items-center justify-center transition-all duration-300 shadow-sm"
-                title="LeetCode Profile"
-              >
-                <LeetCodeIcon className="w-5 h-5" />
-              </a>
-              <a
-                href={`mailto:${PERSONAL_INFO.email}`}
-                className="w-11 h-11 rounded-xl border border-neutral-200 dark:border-white/10 bg-[#FCFCFD] dark:bg-[#1A1A1A] text-neutral-500 dark:text-white/60 hover:text-neutral-900 dark:hover:text-white hover:border-neutral-400 dark:hover:border-white/20 flex items-center justify-center transition-all duration-300 shadow-sm"
-                title="Email Me"
-              >
-                <Mail className="w-5 h-5" />
-              </a>
+                <Mail className="w-4 h-4 text-neutral-600 dark:text-neutral-300" />
+                <span>Contact Me</span>
+              </RippleButton>
             </div>
           </motion.div>
 
-
+          {/* Right Column - Illustration / Profile visual placeholder */}
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.8, delay: 0.15, ease: 'easeOut' }}
+            className="flex-1 w-full flex items-center justify-center lg:justify-end"
+          >
+            <HeroVisual theme={theme} />
+          </motion.div>
         </section>
 
         {/* ABOUT ME SECTION */}
-        <section id="about" className="py-20 border-t border-neutral-200/40 dark:border-neutral-900/30">
-          <div className="text-center mb-12">
-            <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-neutral-500 dark:text-white/40 font-display">
-              Get to know me
-            </span>
-            <h2 className="text-3xl font-display font-black text-neutral-900 dark:text-neutral-50 mt-1 mb-2">
-              About Me
-            </h2>
-            <div className="w-12 h-[2px] bg-black dark:bg-white mx-auto" />
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-stretch">
-            {/* Story Card */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.5 }}
-              className="md:col-span-2 p-6 sm:p-8 bg-[#FCFCFD] dark:bg-[#1A1A1A] border border-neutral-200 dark:border-white/10 rounded-xl shadow-lg"
-            >
-              <h3 className="text-lg font-display font-bold mb-4 flex items-center gap-2">
-                <Sparkles className="w-4 h-4 text-neutral-800 dark:text-white" />
-                Engineering &amp; Problem Solving
-              </h3>
-              <p className="text-sm leading-relaxed text-neutral-600 dark:text-neutral-300 mb-4">
-                I am a dedicated Computer Science Engineering student currently completing my B.Tech studies at{' '}
-                <span className="font-semibold text-neutral-900 dark:text-white">JNN Institute of Engineering</span>. I have built a strong fundamental foundation in Python, C/C++, and JavaScript. I enjoy developing high-quality responsive layouts, offline application wrappers, and intelligent scripts.
-              </p>
-              <p className="text-sm leading-relaxed text-neutral-600 dark:text-neutral-300 mb-6">
-                Beyond my coursework, I actively solve challenging algorithms on LeetCode, participate in technical hackathons, and study hard for the GATE computer science curriculum to master advanced database systems, operating structures, and compile pipelines.
-              </p>
-
-              {/* Badges metadata list */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className="flex gap-3 items-start">
-                  <span className="w-7 h-7 rounded-lg bg-neutral-100 dark:bg-white/5 border border-neutral-200/50 dark:border-white/10 flex items-center justify-center flex-shrink-0 mt-0.5 text-neutral-800 dark:text-white">
-                    <GraduationCap className="w-4 h-4 text-neutral-800 dark:text-white" />
-                  </span>
-                  <div>
-                    <h4 className="text-xs font-bold text-neutral-800 dark:text-neutral-200">Education Focused</h4>
-                    <p className="text-2xs text-neutral-500 dark:text-neutral-400">B.Tech CSE, JNN Institute of Engineering</p>
-                  </div>
-                </div>
-
-                <div className="flex gap-3 items-start">
-                  <span className="w-7 h-7 rounded-lg bg-neutral-100 dark:bg-white/5 border border-neutral-200/50 dark:border-white/10 flex items-center justify-center flex-shrink-0 mt-0.5 text-neutral-800 dark:text-white">
-                    <MapPin className="w-4 h-4 text-neutral-800 dark:text-white" />
-                  </span>
-                  <div>
-                    <h4 className="text-xs font-bold text-neutral-800 dark:text-neutral-200">Location Base</h4>
-                    <p className="text-2xs text-neutral-500 dark:text-neutral-400">Tamil Nadu, India (Available remote/onsite)</p>
-                  </div>
-                </div>
-              </div>
-            </motion.div>
-
-            {/* Metrics and Cockpit Dashboard Card */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.5, delay: 0.15 }}
-              className="flex flex-col gap-4 justify-between"
-            >
-              <Counter target={2} label="Handcrafted Projects" />
-              <Counter target={4} label="Credentials Held" />
-              <Counter target={12} label="Technologies Tracked" />
-              
-              {/* Highlight CGPA block */}
-              <div className="p-4 rounded-xl bg-neutral-100 dark:bg-white/5 border border-neutral-200 dark:border-white/10 flex flex-col justify-center">
-                <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-neutral-500 dark:text-white/40 mb-1">
-                  Academic Standard
-                </span>
-                <span className="text-2xl font-display font-black text-neutral-900 dark:text-white">
-                  8.6 <span className="text-xs font-normal text-neutral-500 dark:text-neutral-400">/ 10 CGPA</span>
-                </span>
-              </div>
-            </motion.div>
-          </div>
-        </section>
+        <AboutSection theme={theme} />
 
         {/* COMPETENCY MATRIX SECTION */}
-        <section id="skills" className="py-20 border-t border-neutral-200/40 dark:border-neutral-900/30">
-          <div className="text-center mb-12">
-            <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-neutral-500 dark:text-white/40 font-display">
-              My Arsenal
-            </span>
-            <h2 className="text-3xl font-display font-black text-neutral-900 dark:text-neutral-50 mt-1 mb-2">
-              Skills &amp; Competence
-            </h2>
-            <div className="w-12 h-[2px] bg-black dark:bg-white mx-auto" />
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {SKILL_CATEGORIES.map((category, idx) => {
-              const IconComponent =
-                category.iconName === 'Layout'
-                  ? Layout
-                  : category.iconName === 'Code2'
-                  ? Code2
-                  : Cpu;
-
-              return (
-                <motion.div
-                  key={category.title}
-                  initial={{ opacity: 0, y: 20 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ duration: 0.5, delay: idx * 0.1 }}
-                  className="p-6 bg-[#FCFCFD] dark:bg-[#1A1A1A] border border-neutral-200 dark:border-white/10 rounded-xl shadow-lg"
-                >
-                  <div className="flex items-center gap-3 pb-4 mb-6 border-b border-neutral-200/50 dark:border-white/10">
-                    <span className="w-9 h-9 rounded-xl bg-neutral-100 dark:bg-white/5 border border-neutral-200/50 dark:border-white/10 flex items-center justify-center text-neutral-800 dark:text-white">
-                      <IconComponent className="w-5 h-5" />
-                    </span>
-                    <h3 className="font-display font-bold text-neutral-900 dark:text-neutral-100">
-                      {category.title}
-                    </h3>
-                  </div>
-
-                  <div className="flex flex-col gap-5">
-                    {category.skills.map((skill, sIdx) => (
-                      <div key={skill.name}>
-                        <SkillBar skill={skill} index={sIdx} />
-                      </div>
-                    ))}
-                  </div>
-                </motion.div>
-              );
-            })}
-          </div>
-        </section>
+        <SkillsSection theme={theme} />
 
         {/* PROJECTS SECTION */}
-        <section id="projects" className="py-20 border-t border-neutral-200/40 dark:border-neutral-900/30">
-          <div className="text-center mb-12">
-            <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-neutral-500 dark:text-white/40 font-display">
-              Handcrafted Works
-            </span>
-            <h2 className="text-3xl font-display font-black text-neutral-900 dark:text-neutral-50 mt-1 mb-2">
-              Featured Projects
-            </h2>
-            <div className="w-12 h-[2px] bg-black dark:bg-white mx-auto" />
-          </div>
+        <ProjectsSection theme={theme} />
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            {PROJECTS.map((project) => (
-              <div key={project.id}>
-                <ProjectCard project={project} />
-              </div>
-            ))}
-          </div>
-        </section>
-
-        {/* EDUCATION SECTION */}
-        <section id="education" className="py-20 border-t border-neutral-200/40 dark:border-neutral-900/30">
-          <div className="text-center mb-12">
-            <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-neutral-500 dark:text-white/40 font-display">
-              Academic Journey
-            </span>
-            <h2 className="text-3xl font-display font-black text-neutral-900 dark:text-neutral-50 mt-1 mb-2">
-              Education
-            </h2>
-            <div className="w-12 h-[2px] bg-black dark:bg-white mx-auto" />
-          </div>
-
-          {/* Connected timeline */}
-          <div className="relative pl-6 md:pl-10 border-l border-neutral-200 dark:border-neutral-800 max-w-3xl mx-auto flex flex-col gap-10">
-            {EDUCATIONS.map((edu, idx) => (
-              <motion.div
-                key={edu.id}
-                initial={{ opacity: 0, x: -15 }}
-                whileInView={{ opacity: 1, x: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.5, delay: idx * 0.1 }}
-                className="relative"
-              >
-                {/* Timeline connector circle node */}
-                <span className="absolute left-[-31px] md:left-[-47px] top-1.5 w-4 h-4 rounded-full bg-black dark:bg-white border-4 border-neutral-100 dark:border-[#0D0D0D]" />
-
-                <div className="p-6 bg-[#FCFCFD] dark:bg-[#1A1A1A] border border-neutral-200 dark:border-white/10 rounded-xl shadow-md">
-                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4">
-                    <div>
-                      <span className="text-[10px] font-bold text-neutral-500 dark:text-white/40 font-mono block mb-1">
-                        {edu.duration}
-                      </span>
-                      <h3 className="text-lg font-display font-bold text-neutral-900 dark:text-neutral-50 leading-snug">
-                        {edu.degree}
-                      </h3>
-                      <p className="text-xs font-bold text-neutral-500 dark:text-neutral-400 mt-0.5">
-                        {edu.institution}
-                      </p>
-                    </div>
-                    <span className="self-start sm:self-auto text-2xs font-bold px-3 py-1 rounded-none bg-neutral-100 dark:bg-white/5 border border-neutral-200 dark:border-white/10 text-neutral-800 dark:text-white uppercase tracking-wider">
-                      {edu.cgpaOrGrade}
-                    </span>
-                  </div>
-
-                  <p className="text-xs leading-relaxed text-neutral-600 dark:text-neutral-400 mb-4">
-                    {edu.description}
-                  </p>
-
-                  <div className="flex flex-wrap gap-2.5">
-                    <span className="inline-flex items-center gap-1.5 text-2xs font-medium text-neutral-500 dark:text-neutral-400 py-1 px-2.5 bg-neutral-100 dark:bg-white/5 border border-neutral-200/50 dark:border-white/5 rounded-sm">
-                      <Calendar className="w-3.5 h-3.5 text-neutral-800 dark:text-white" />
-                      <span>{edu.expectedYear || 'Graduated'}</span>
-                    </span>
-                    <span className="inline-flex items-center gap-1.5 text-2xs font-medium text-neutral-500 dark:text-neutral-400 py-1 px-2.5 bg-neutral-100 dark:bg-white/5 border border-neutral-200/50 dark:border-white/5 rounded-sm">
-                      <Award className="w-3.5 h-3.5 text-neutral-800 dark:text-white" />
-                      <span>{edu.statusBadge}</span>
-                    </span>
-                  </div>
-                </div>
-              </motion.div>
-            ))}
-          </div>
-        </section>
-
-        {/* CERTIFICATIONS SECTION */}
-        <section id="certifications" className="py-20 border-t border-neutral-200/40 dark:border-neutral-900/30">
-          <div className="text-center mb-12">
-            <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-neutral-500 dark:text-white/40 font-display">
-              Verified Credentials
-            </span>
-            <h2 className="text-3xl font-display font-black text-neutral-900 dark:text-neutral-50 mt-1 mb-2">
-              Certifications
-            </h2>
-            <div className="w-12 h-[2px] bg-black dark:bg-white mx-auto" />
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            {CERTIFICATIONS.map((cert, idx) => (
-              <div key={cert.id}>
-                <CertificateCard cert={cert} index={idx} />
-              </div>
-            ))}
-          </div>
-        </section>
+        {/* EXPERIENCE & LEARNING SECTION */}
+        <ExperienceLearningSection theme={theme} />
 
         {/* CONTACT SECTION */}
-        <section id="contact" className="py-20 border-t border-neutral-200/40 dark:border-neutral-900/30">
-          <div className="text-center mb-12">
-            <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-neutral-500 dark:text-white/40 font-display">
-              Get in Touch
-            </span>
-            <h2 className="text-3xl font-display font-black text-neutral-900 dark:text-neutral-50 mt-1 mb-2">
-              Contact Me
-            </h2>
-            <div className="w-12 h-[2px] bg-black dark:bg-white mx-auto" />
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-5 gap-8 items-start">
-            {/* Contact details */}
-            <div className="md:col-span-2 flex flex-col gap-6">
-              <h3 className="text-xl font-display font-bold text-neutral-900 dark:text-neutral-50">
-                Let's collaborate on something great
-              </h3>
-              <p className="text-sm leading-relaxed text-neutral-500 dark:text-neutral-400">
-                Whether you are looking to hire a software engineering intern, collaborate on an open-source tool, or ask questions about my works, feel free to drop a message!
-              </p>
-
-              <div className="flex flex-col gap-4 mt-2">
-                {/* Direct Touch point 1 */}
-                <div className="flex gap-4 items-center p-3.5 bg-[#FCFCFD] dark:bg-[#1A1A1A] border border-neutral-200 dark:border-white/10 rounded-xl shadow-md">
-                  <span className="w-10 h-10 rounded-xl bg-neutral-100 dark:bg-white/5 border border-neutral-200/50 dark:border-white/10 flex items-center justify-center flex-shrink-0 text-neutral-800 dark:text-white animate-pulse">
-                    <Mail className="w-5 h-5" />
-                  </span>
-                  <div>
-                    <span className="text-3xs font-bold uppercase tracking-widest text-neutral-400">Email Me</span>
-                    <a href={`mailto:${PERSONAL_INFO.email}`} className="text-xs sm:text-sm font-semibold text-neutral-700 dark:text-neutral-300 hover:text-black dark:hover:text-white transition-colors block">
-                      {PERSONAL_INFO.email}
-                    </a>
-                  </div>
-                </div>
-
-                {/* Direct Touch point 2 */}
-                <div className="flex gap-4 items-center p-3.5 bg-[#FCFCFD] dark:bg-[#1A1A1A] border border-neutral-200 dark:border-white/10 rounded-xl shadow-md">
-                  <span className="w-10 h-10 rounded-xl bg-neutral-100 dark:bg-white/5 border border-neutral-200/50 dark:border-white/10 flex items-center justify-center flex-shrink-0 text-neutral-800 dark:text-white">
-                    <Phone className="w-5 h-5" />
-                  </span>
-                  <div>
-                    <span className="text-3xs font-bold uppercase tracking-widest text-neutral-400">Call Me</span>
-                    <a href={`tel:${PERSONAL_INFO.phone}`} className="text-xs sm:text-sm font-semibold text-neutral-700 dark:text-neutral-300 hover:text-black dark:hover:text-white transition-colors block">
-                      {PERSONAL_INFO.phone}
-                    </a>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Form */}
-            <div className="md:col-span-3">
-              <ContactForm />
-            </div>
-          </div>
-        </section>
+        <ContactSection theme={theme} />
       </main>
 
-      {/* FOOTER */}
-      <footer className="relative z-10 border-t border-neutral-200 dark:border-white/10 bg-[#FCFCFD] dark:bg-[#0A0A0A] py-10 text-neutral-500 dark:text-white/40">
-        <div className="max-w-5xl mx-auto px-6 flex flex-col sm:flex-row items-center justify-between gap-6">
-          <div className="text-center sm:text-left">
-            <h4 className="font-display font-black text-base text-neutral-900 dark:text-neutral-50 tracking-tight mb-1">
-              MARIMUTHU<span className="text-black dark:text-white">.</span>
-            </h4>
-            <p className="text-2xs font-semibold uppercase tracking-wider text-neutral-400 dark:text-neutral-500">
-              Computer Science Student &amp; Developer
-            </p>
-          </div>
-
-          <div className="flex gap-4">
-            <a href={PERSONAL_INFO.github} target="_blank" rel="noopener noreferrer" className="text-neutral-400 hover:text-neutral-900 dark:hover:text-white transition-colors">
-              <Github className="w-4 h-4" />
-            </a>
-            <a href={PERSONAL_INFO.linkedin} target="_blank" rel="noopener noreferrer" className="text-neutral-400 hover:text-neutral-900 dark:hover:text-white transition-colors">
-              <Linkedin className="w-4 h-4" />
-            </a>
-            <a href={PERSONAL_INFO.leetcode} target="_blank" rel="noopener noreferrer" className="text-neutral-400 hover:text-neutral-900 dark:hover:text-white transition-colors">
-              <LeetCodeIcon className="w-4 h-4" />
-            </a>
-          </div>
-
-          <div className="text-2xs text-center sm:text-right font-medium">
-            <p>&copy; {new Date().getFullYear()} Marimuthu A. All rights reserved.</p>
-          </div>
-        </div>
-      </footer>
-
-      {/* FLOAT BACK TO TOP BUTTON */}
-      <AnimatePresence>
-        {backToTopVisible && (
-          <motion.button
-            initial={{ opacity: 0, y: 15 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 15 }}
-            onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-            className="fixed bottom-6 right-6 z-40 w-11 h-11 rounded-xl bg-black dark:bg-white hover:bg-neutral-800 dark:hover:bg-neutral-100 text-white dark:text-black shadow-lg flex items-center justify-center cursor-pointer transition-all duration-300 border border-neutral-200 dark:border-white/10"
-            aria-label="Back to top"
-          >
-            <ChevronUp className="w-5 h-5" />
-          </motion.button>
-        )}
-      </AnimatePresence>
+      {/* FOOTER & FLOATING BACK TO TOP */}
+      <Footer theme={theme} onScrollTo={handleScrollTo} />
     </div>
   );
 }
